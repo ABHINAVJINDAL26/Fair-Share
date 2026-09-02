@@ -1,51 +1,105 @@
 # FairShare
 
-FairShare helps a group of friends share costs on a trip.
+> A modern, zero-sum group expense splitting web application built with React and Vite.
 
-Imagine four people on a weekend away. Someone pays for dinner, someone else pays for the cab, someone books the stay. Instead of arguing in a chat thread, they log each expense here: who paid, how much, and who should share it. The app then shows who is in credit, who still needs to pay in, and a simple list of transfers that would settle the group.
+FairShare helps groups of friends, travelers, and roommates easily log shared costs, track individual running balances, and settle up with the minimum number of transactions — without losing or inventing money in rounding.
 
-This repo is a working app, not a starter template. Get it running, use it the way a traveler would, and read the code when something does not add up. Improve **this** project. Do not start over or add new libraries.
+---
 
-## How bill splitting should work
+## Features
 
-FairShare is meant to match how people actually split money in real life.
+- **Accurate Bill Splitting**:
+  - **Equal Split**: Evenly distributes costs among participants with exact penny distribution so no cents are lost to rounding.
+  - **Custom Percentages**: Split unevenly by percentage with automatic validation ensuring totals equal 100%.
+- **Pay for Others**: Supports scenarios where the payer is not part of the split (e.g. paying for someone else's cab ride) with full reimbursement.
+- **Zero-Sum Running Balances**: Tracks real-time net positions ($Balance = Paid - Consumed$). Group balances strictly sum to $0.00.
+- **Optimized Settlement Engine**: Automatically computes pairwise transfers to settle all group debts cleanly.
+- **Interactive Filtering & Search**: Instant filter by expense description, category chips (Food, Travel, Fun, Stay), or payer.
+- **Persistent State**: Automatically syncs data to browser `localStorage` for offline persistence.
+- **Responsive Design**: Fast, lightweight UI built with modern CSS and responsive layouts.
 
-**Recording a bill.** Each expense is one real payment: a description, an amount, who paid the merchant, and who that cost is for. The payer is the person whose card or cash went out. The split is the people who should carry that cost.
+---
 
-**Equal split.** If three people share a dinner equally, each of them is on the hook for the same portion of that dinner. Those portions together should make up the full bill — the group should not “lose” or “invent” money in the rounding.
+## Tech Stack
 
-**Uneven split.** Sometimes one person had the expensive dish, or only two of the four used the cab. Custom percentages are for that. The percentages are just a way of describing the split; in dollars, the shares should still cover the original amount.
+- **Frontend**: React 18
+- **Build Tool**: Vite 6
+- **Styling**: Vanilla CSS (CSS Custom Properties & Grid/Flexbox)
+- **State Management**: React `useReducer` with LocalStorage persistence
 
-**Paying for other people.** It is normal that the person who paid is not on the split. Someone can put a cab on their card even if they did not ride. They should get that fare back in full. Only the people who used it should owe a share. Anyone who was not involved should be left out of that bill.
+---
 
-**Running balance.** Over the whole trip, each person’s position is simple: add up what they paid out, subtract what they actually consumed (their share of each bill they were on). If they have paid more than their share, the group owes them. If they have paid less, they still owe the group. Across everyone, those positions should cancel out — this is a closed group, not a bank.
+## Getting Started
 
-**Settling up.** The settle-up list is a shortcut so people do not have to ping each other one expense at a time. After those suggested payments, nobody should still be in credit or in debt.
+### Prerequisites
 
-**Using the app.** Filters, edits, new people, and coming back later should not change the story of an expense. What you click is what should change. What the screen claims (who paid, who owes whom, which bills you are looking at) should match the data.
+- Node.js 18 or newer
+- npm 9 or newer
 
-The demo group is a weekend in Goa with a handful of bills already logged. Use those, and add your own, to see whether the app behaves as above.
-
-## Run it
-
-
-You need Node.js 18 or newer.
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/ABHINAVJINDAL26/Fair-Share.git
+
+# Navigate into project directory
+cd Fair-Share
+
+# Install dependencies
 npm install
+```
+
+### Running Locally
+
+```bash
 npm run dev
 ```
 
-Then open the local URL (usually `http://localhost:5173`).
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-The demo group is stored in your browser. If you want the original demo data back, delete `fairshare-v1` under DevTools → Application → Local Storage, and refresh.
+---
 
-## What we want from you
+## Available Scripts
 
-Find problems, fix them, and record them in `BUGS.md` (this file is already in the repo). Commit `BUGS.md` together with your code changes.
+- `npm run dev` — Starts the local Vite development server with Hot Module Replacement (HMR).
+- `npm run build` — Bundles the application into production-ready assets in the `dist/` directory.
+- `npm run preview` — Locally previews the production build output.
 
-## How to submit
+---
 
-1. Create a **new public repository** on your GitHub account (do not fork an existing private company repo).
-2. Push your work there, including your filled-in `BUGS.md`.
-3. Send us the repository URL.
+## Project Structure
+
+```text
+Fair-Share/
+├── src/
+│   ├── components/       # Reusable UI components
+│   │   ├── AddExpenseForm.jsx  # Expense creation form (equal / custom %)
+│   │   ├── BalancesPanel.jsx   # Running balances breakdown (owes / is owed)
+│   │   ├── ExpenseList.jsx     # Sorted expense list with inline editing & deletion
+│   │   ├── Filters.jsx         # Search, category chips, and payer filters
+│   │   ├── SettleUpPanel.jsx   # Optimal settlement transfers list
+│   │   └── SummaryCards.jsx    # Group totals, member stats, and member addition
+│   ├── data/
+│   │   └── seed.json     # Initial demo group and expenses
+│   ├── lib/              # Core business logic & mathematical utilities
+│   │   ├── balances.js   # Zero-sum balance computations
+│   │   ├── format.js     # Currency & localized date formatting
+│   │   ├── money.js      # Cent-safe equal & percentage split algorithms
+│   │   └── settle.js     # Greedy settlement / debt simplification engine
+│   ├── state/
+│   │   └── store.js      # Central reducer, hydration & persistence logic
+│   ├── App.jsx           # Main application layout
+│   ├── index.css         # Global design system & theme tokens
+│   └── main.jsx          # React DOM root entrypoint
+├── index.html            # HTML shell
+├── vite.config.js        # Vite configuration
+└── package.json          # Project metadata and dependencies
+```
+
+---
+
+## Financial Logic & Rules
+
+1. **Closed-Group Invariant**: Across all group members, $\sum \text{Balances} = 0$. The app acts as a closed ledger, not a bank.
+2. **Remainder Penny Distribution**: When dividing an amount that does not split into whole cents (e.g. $100 / 3), remainder cents are allocated to participants sequentially to guarantee $\sum \text{Shares} = \text{Amount}$.
+3. **Payer Independence**: If member $A$ pays for members $B$ and $C$, member $A$'s balance increases by $+Amount$, while $B$ and $C$ are debited their respective shares. $A$ is never penalized for non-involvement.

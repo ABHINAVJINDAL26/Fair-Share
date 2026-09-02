@@ -15,6 +15,10 @@ function ExpenseRow({ expense, memberMap, onDelete, onSaveAmount }) {
   const [draft, setDraft] = useState(String(expense.amount));
   const payer = memberMap[expense.paidBy];
 
+  useEffect(() => {
+    setDraft(String(expense.amount));
+  }, [expense.amount]);
+
   return (
     <article className="expense">
       <span className="avatar" style={{ background: payer?.color ?? "#888" }}>
@@ -57,6 +61,8 @@ export default function ExpenseList({
   members,
   onDeleteAt,
   onUpdateAt,
+  onDeleteExpense,
+  onUpdateExpense,
 }) {
   const memberMap = Object.fromEntries(members.map((m) => [m.id, m]));
   const sorted = [...expenses].sort((a, b) => dateValue(b.date) - dateValue(a.date));
@@ -70,11 +76,17 @@ export default function ExpenseList({
       ) : (
         sorted.map((expense, index) => (
           <ExpenseRow
-            key={index}
+            key={expense.id ?? index}
             expense={expense}
             memberMap={memberMap}
-            onDelete={() => onDeleteAt(index)}
-            onSaveAmount={(amount) => onUpdateAt(index, { amount })}
+            onDelete={() =>
+              onDeleteExpense ? onDeleteExpense(expense.id) : onDeleteAt(index)
+            }
+            onSaveAmount={(amount) =>
+              onUpdateExpense
+                ? onUpdateExpense(expense.id, { amount })
+                : onUpdateAt(index, { amount })
+            }
           />
         ))
       )}

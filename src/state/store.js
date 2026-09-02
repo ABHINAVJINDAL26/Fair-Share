@@ -19,7 +19,7 @@ export function loadState(seed) {
       localStorage.setItem(KEY, JSON.stringify(initial));
       return initial;
     }
-    return JSON.parse(raw);
+    return hydrate(JSON.parse(raw));
   } catch {
     return hydrate(seed);
   }
@@ -44,14 +44,20 @@ export function reducer(state, action) {
       return { ...state, expenses: [...state.expenses, action.expense] };
     }
     case "DELETE_EXPENSE": {
-      const next = state.expenses.slice();
-      next.splice(action.index, 1);
-      return { ...state, expenses: next };
+      const id = action.id ?? state.expenses[action.index]?.id;
+      return {
+        ...state,
+        expenses: state.expenses.filter((e) => e.id !== id),
+      };
     }
     case "UPDATE_EXPENSE": {
-      const next = state.expenses.slice();
-      next[action.index] = { ...next[action.index], ...action.patch };
-      return { ...state, expenses: next };
+      const id = action.id ?? state.expenses[action.index]?.id;
+      return {
+        ...state,
+        expenses: state.expenses.map((e) =>
+          e.id === id ? { ...e, ...action.patch } : e
+        ),
+      };
     }
     case "ADD_MEMBER": {
       return { ...state, members: [...state.members, action.member] };
